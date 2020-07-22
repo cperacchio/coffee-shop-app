@@ -29,17 +29,16 @@ db_drop_and_create_all()
 '''
 @app.route('/drinks')
 def get_drinks():
-    drinks = Drink.query.all()
+    try:
+        drinks = Drink.query.all()
 
-    if len(drinks) == 0:
-        abort(404)
-
-    drinks_short = [drink.short() for drink in drinks]
-
-    return jsonify({
+        return jsonify({
         'success': True,
-        'drinks': drinks_short
-    })
+        'drinks': [drink.short() for drink in drinks]
+        })
+
+    except: 
+        abort(404)
 
 '''
 @TODO implement endpoint
@@ -52,20 +51,16 @@ def get_drinks():
 @app.route('/drinks-detail')
 @requires_auth('get:drinks-detail')
 def get_drinks_detail(jwt):
-    drinks = Drink.query.all()
+    try:
+        drinks = Drink.query.all()
 
-    if len(drinks) == 0:
-        abort(404)
-
-    drinks_long = [drink.long() for drink in drinks]
-
-    result = {
+        return jsonify({
         'success': True,
-        'drinks': drinks_long
-        }
+        'drinks': [drink.long() for drink in drinks]
+        })
     
-    return jsonify(result)
-
+    except:
+        abort(404)
 
 '''
 @TODO implement endpoint
@@ -79,30 +74,26 @@ def get_drinks_detail(jwt):
 @app.route('/drinks', methods=['POST'])
 @requires_auth('post:drinks')
 def add_drinks(jwt):
+    
     body = request.get_json()
 
-    # abort if no drink info in body
-    if not ('title' in body and 'recipe' in body):
-        abort(422)
-
     # get drink info
-    title = body.get('title')
-    recipe = body.get('recipe')
+    title = body['title']
+    recipe = body['recipe']
+
+    drink = Drink(title=title, recipe=json.dumps(recipe))
 
     try:
         # add the new drink
-        drink = Drink(title=title, recipe=json.dumps(recipe))
         drink.insert()
-
-        return jsonify({
-        'success': True,
-        'created': drink_id,
-        'drinks': drinks.long()
-        })
     
     except:
         abort(422)
 
+    return jsonify({
+        'success': True,
+        'drinks': [drink.long() for drink in drinks]
+    })
 
 '''
 @TODO implement endpoint
@@ -117,42 +108,38 @@ def add_drinks(jwt):
 '''
 @app.route('/drinks/<id>', methods=['PATCH'])
 @requires_auth('patch:drinks')
-def update_drink(jwt, id):
+def update_drink(*args, **kwargs):
 
     # get drink based on id
-    drink = Drink.query.filter_by(Drink.id == drink_id).one_or_none()
+    id = kwargs['id']
+    drink = Drink.query.filter_by(id=id).one_or_none()
 
     if drink is None:
         return json.dumps({
             'success': False,
             'error': 'Drink #' + id + ' not found to be edited',
-            }), 404
+        }), 404
+
+    body = request.get_json()
+
+    #if there is a title
+    if 'title' in body:
+        drink.title = body['title']
+
+    #if there is a recipe
+    if 'recipe' in body:
+        drink.recipe = json.dumps(body['recipe'])
 
     try:
-        body = request.get_json()
-
-        # get drink info
-        title = body.get('title')
-        recipe = body.get('recipe')
-        
-        #if there is a title
-        if 'title' in body:
-            drink.title = title
-
-        #if there is a recipe
-        if 'recipe' in body:
-            drink.recipe = recipe
-
-        drink.update()
-
-        return jsonify({
-            'success': True,
-            'updated': drink_id,
-            'drinks': drinks.long()
-        })
+        drink.insert()
 
     except:
-        abort(422)
+        abort(400)
+
+    return jsonify({
+        'success': True,
+        'drinks': [drink.long() for drink in drinks]
+    })
 
 '''
 @TODO implement endpoint
