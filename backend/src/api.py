@@ -78,22 +78,26 @@ def add_drinks(jwt):
     body = request.get_json()
 
     # get drink info
-    title = body['title']
-    recipe = body['recipe']
+    title = body.get('title')
+    recipe = body.get('recipe')
 
-    drink = Drink(title=title, recipe=json.dumps(recipe))
+    # throw error if no drink info
+    if not('title' in body and 'recipe' in body):
+        abort(422)
 
     try:
         # add the new drink
+        drink = Drink(title=title, recipe=json.dumps(recipe))
         drink.insert()
-    
+
     except:
         abort(422)
 
     return jsonify({
         'success': True,
-        'drinks': [drink.long() for drink in drinks]
+        'drinks': [drink.long()]
     })
+
 
 '''
 @TODO implement endpoint
@@ -138,7 +142,7 @@ def update_drink(*args, **kwargs):
 
     return jsonify({
         'success': True,
-        'drinks': [drink.long() for drink in drinks]
+        'drinks': [drink.long()]
     })
 
 '''
@@ -155,7 +159,7 @@ def update_drink(*args, **kwargs):
 @requires_auth('delete:drinks')
 
 def delete_drink(jwt, id):
-    drink = Drink.query.filter_by(Drink.id == drink_id).one_or_none()
+    drink = Drink.query.filter_by(id=id).one_or_none()
 
     if drink is None:
         abort(404)
@@ -165,7 +169,7 @@ def delete_drink(jwt, id):
 
         return jsonify({
         'success': True,
-        'deleted': drink_id,
+        'deleted': id,
         })
     
     except:
