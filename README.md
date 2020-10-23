@@ -12,7 +12,6 @@ This full stack drink menu application must:
 4) Allow the shop managers to create new drinks and edit existing drinks.
 
 ## Skills covered
-This project involves:
 - Implementing authentication and authorization in Flask
 - Designing against key security principals
 - Implementing role-based control design patterns
