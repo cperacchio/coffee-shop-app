@@ -13,7 +13,7 @@ This full stack drink menu application must:
 
 ## Skills Covered
 This project covers the following:
-- Implemplementing authentication and authorization in Flask
+- Implementing authentication and authorization in Flask
 - Designing against key security principals
 - Implementing role-based control design patterns
 - Securing a REST API
